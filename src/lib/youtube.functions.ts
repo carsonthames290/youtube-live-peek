@@ -4,7 +4,12 @@ import { z } from "zod";
 const API = "https://www.googleapis.com/youtube/v3";
 
 function key() {
-  const k = process.env["YOUTUBE_API_KEY"];
+  // Cloudflare Workers expose bindings on globalThis.__env__ (set by the hosting runtime).
+  const cfEnv = (globalThis as { __env__?: Record<string, unknown> }).__env__;
+  const fromCf = cfEnv?.["YOUTUBE_API_KEY"];
+  const k =
+    (typeof fromCf === "string" && fromCf) ||
+    (typeof process !== "undefined" ? process.env["YOUTUBE_API_KEY"] : undefined);
   if (!k) throw new Error("YOUTUBE_API_KEY is not configured");
   return k;
 }
