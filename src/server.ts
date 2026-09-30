@@ -47,6 +47,12 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Bridge Cloudflare env bindings (e.g. YOUTUBE_API_KEY) into process.env.
+      if (env && typeof env === "object" && typeof process !== "undefined") {
+        for (const [k, v] of Object.entries(env as Record<string, unknown>)) {
+          if (typeof v === "string" && process.env[k] === undefined) process.env[k] = v;
+        }
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
